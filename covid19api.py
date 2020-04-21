@@ -4,6 +4,7 @@ from pandas import DataFrame
 from matplotlib import pyplot as plt
 from datetime import datetime
 
+
 class Covid19():
     def __init__(self):
         self.__client = client.HTTPSConnection("api.covid19api.com")
@@ -31,13 +32,32 @@ class Covid19():
     def muertos(self, country):
         return self.__obtenerDatos(country, "deaths")
 
-    def grafPais(self, country):
+    def allData(self, country):
         m = self.muertos(country)
         r = self.recuperados(country)
         c = self.confirmados(country)
-        fechas = list(map(lambda x: datetime.strptime(x, "%Y-%m-%dT%H:%M:%S%z").date(), m.Date))
-        plt.figure(figsize=(9,8))
+        fechas = list(map(lambda x: datetime.strptime(
+            x, "%Y-%m-%dT%H:%M:%S%z").date(), m.Date))
+        return m, r, c, fechas
+
+    def grafPais(self, country):
+        m, r, c, fechas = self.allData(country)
+        plt.figure(figsize=(15, 6))
         plt.stackplot(fechas, m.Cases, r.Cases, c.Cases, labels=[
                       "muertos", "recuperados", "confirmados"])
-        plt.legend(loc='upper right')
-        
+        plt.legend(loc='upper left')
+
+    def compararPaises(self, countries):
+        fig, (ax0, ax1, ax2) = plt.subplots(
+            3, 1, figsize=(15, 12), sharex=True)
+        ax0.set_title("Contagiados")
+        ax1.set_title("Muertos")
+        ax2.set_title("Recuperados")
+        for country in countries:
+            m, r, c, fechas = self.allData(country)
+            ax0.plot(fechas, c.Cases, label=country)
+            ax1.plot(fechas, m.Cases)
+            ax2.plot(fechas, r.Cases)
+        ax0.legend(countries, loc='upper left')
+        ax1.legend(countries, loc='upper left')
+        ax2.legend(countries, loc='upper left')
