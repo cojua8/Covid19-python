@@ -36,28 +36,33 @@ class Covid19():
         m = self.muertos(country)
         r = self.recuperados(country)
         c = self.confirmados(country)
+        
         fechas = list(map(lambda x: datetime.strptime(
             x, "%Y-%m-%dT%H:%M:%S%z").date(), m.Date))
-        return m, r, c, fechas
+        
+        df = DataFrame(data = {"Muertos": m.Cases, "Recuperados": r.Cases, "Contagiados": c.Cases, "Fechas": fechas})
+
+        return df
 
     def grafPais(self, country):
-        m, r, c, fechas = self.allData(country)
+        data = self.allData(country)
         plt.figure(figsize=(15, 6))
-        plt.stackplot(fechas, m.Cases, r.Cases, c.Cases, labels=[
+        plt.stackplot(data.Fechas, data.Muertos, data.Recuperados, data.Contagiados, labels=[
                       "muertos", "recuperados", "confirmados"])
         plt.legend(loc='upper left')
 
-    def compararPaises(self, countries):
+    # compara los paises desde el dia 0 en adelante
+    def compararPaises(self, countries, countriesData, n):
         fig, (ax0, ax1, ax2) = plt.subplots(
             3, 1, figsize=(15, 12), sharex=True)
         ax0.set_title("Contagiados")
         ax1.set_title("Muertos")
         ax2.set_title("Recuperados")
-        for country in countries:
-            m, r, c, fechas = self.allData(country)
-            ax0.plot(fechas, c.Cases, label=country)
-            ax1.plot(fechas, m.Cases)
-            ax2.plot(fechas, r.Cases)
+        for data in countriesData:
+            ndata = min(len(data), n)
+            ax0.plot(range(ndata), data.Contagiados[0:ndata])
+            ax1.plot(range(ndata), data.Muertos[0:ndata])
+            ax2.plot(range(ndata), data.Recuperados[0:ndata])
         ax0.legend(countries, loc='upper left')
         ax1.legend(countries, loc='upper left')
         ax2.legend(countries, loc='upper left')
